@@ -1,0 +1,727 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Wasilni — Inscription</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated background */
+.animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.circles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.circles li {
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+}
+
+.circles li:nth-child(1) {
+    left: 25%;
+    width: 80px;
+    height: 80px;
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(2) {
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 2s;
+    animation-duration: 12s;
+}
+
+.circles li:nth-child(3) {
+    left: 70%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 4s;
+}
+
+.circles li:nth-child(4) {
+    left: 40%;
+    width: 60px;
+    height: 60px;
+    animation-delay: 0s;
+    animation-duration: 18s;
+}
+
+.circles li:nth-child(5) {
+    left: 65%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(6) {
+    left: 75%;
+    width: 110px;
+    height: 110px;
+    animation-delay: 3s;
+}
+
+.circles li:nth-child(7) {
+    left: 35%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 7s;
+}
+
+.circles li:nth-child(8) {
+    left: 50%;
+    width: 25px;
+    height: 25px;
+    animation-delay: 15s;
+    animation-duration: 45s;
+}
+
+.circles li:nth-child(9) {
+    left: 20%;
+    width: 15px;
+    height: 15px;
+    animation-delay: 2s;
+    animation-duration: 35s;
+}
+
+.circles li:nth-child(10) {
+    left: 85%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 0s;
+    animation-duration: 11s;
+}
+
+@keyframes animate {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+    100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.nav-link {
+    font-weight: 600;
+    color: #333 !important;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #667eea !important;
+    transform: translateY(-2px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+/* Main content */
+.main-content {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 76px);
+    display: flex;
+    align-items: center;
+    padding: 80px 0;
+}
+
+/* Hero Section */
+.hero-text {
+    animation: fadeInLeft 0.8s ease;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 30px;
+}
+
+.features-list li {
+    color: white;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    animation: fadeInLeft 0.8s ease;
+    animation-fill-mode: both;
+}
+
+.features-list li:nth-child(1) { animation-delay: 0.2s; }
+.features-list li:nth-child(2) { animation-delay: 0.4s; }
+.features-list li:nth-child(3) { animation-delay: 0.6s; }
+.features-list li:nth-child(4) { animation-delay: 0.8s; }
+
+.features-list li i {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 0.9rem;
+}
+
+/* Register Card */
+.register-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    animation: fadeInRight 0.8s ease;
+    transition: transform 0.3s;
+}
+
+.register-card:hover {
+    transform: translateY(-5px);
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.register-icon i {
+    font-size: 30px;
+    color: white;
+}
+
+.register-card h3 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.register-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.input-group-custom {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group-custom i {
+    position: absolute;
+    left: 15px;
+    color: #667eea;
+    font-size: 1.1rem;
+    z-index: 1;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background: white;
+}
+
+.form-control-custom:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-strength {
+    margin-top: 8px;
+    font-size: 0.8rem;
+}
+
+.strength-bar {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.strength-progress {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s, background 0.3s;
+    border-radius: 2px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: #999;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    z-index: 1;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-register:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.register-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.register-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-footer a:hover {
+    text-decoration: underline;
+}
+
+.terms {
+    margin-top: 20px;
+    color: #999;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.terms a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+/* Alerts */
+.alert-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Animations */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    
+    .hero-subtitle {
+        text-align: center;
+    }
+    
+    .features-list li {
+        justify-content: center;
+    }
+    
+    .register-card {
+        margin-top: 40px;
+        padding: 30px;
+    }
+    
+    .main-content {
+        padding: 40px 0;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="animated-bg">
+    <ul class="circles">
+        <li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li>
+    </ul>
+</div>
+
+<!-- Navigation simplifiée sans lien home problématique -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-bus"></i> Wasilni
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Connexion</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-text">
+                    <h1 class="hero-title">Rejoignez l'aventure Wasilni</h1>
+                    <p class="hero-subtitle">
+                        Créez votre compte et découvrez une nouvelle façon de voyager, 
+                        plus intelligente, plus écologique et plus économique.
+                    </p>
+                    <ul class="features-list">
+                        
+                        <li><i class="fas fa-check"></i><span>Suivi GPS en direct</span></li>
+                        
+                        <li><i class="fas fa-check"></i><span>Support client 24/7</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="register-card">
+                    <div class="register-header">
+                        <div class="register-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3>Créer un compte</h3>
+                        <p class="register-subtitle">Inscrivez-vous gratuitement en quelques secondes</p>
+                    </div>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert-custom {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" id="registerForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label>Nom d'utilisateur</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-user"></i>
+                                <input type="text" name="username" id="username" class="form-control-custom" placeholder="Choisissez un nom d'utilisateur" required>
+                            </div>
+                            <small class="text-muted" id="usernameHelp"></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Adresse email</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" name="email" id="email" class="form-control-custom" placeholder="votre@email.com" required>
+                            </div>
+                            <small class="text-muted" id="emailHelp"></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" name="password" id="password" class="form-control-custom" placeholder="Créez un mot de passe sécurisé" required>
+                                <button class="password-toggle" type="button" onclick="togglePassword('password')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-progress" id="strengthProgress"></div>
+                                </div>
+                                <small id="strengthText"></small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Confirmer le mot de passe</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" name="password_confirm" id="passwordConfirm" class="form-control-custom" placeholder="Confirmez votre mot de passe" required>
+                                <button class="password-toggle" type="button" onclick="togglePassword('passwordConfirm')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
+                            <small id="passwordMatchHelp"></small>
+                        </div>
+                        
+                        <button class="btn-register" type="submit" id="submitBtn">
+                            <i class="fas fa-user-plus"></i> S'inscrire
+                        </button>
+                    </form>
+                    
+                    <div class="register-footer">
+                        Déjà inscrit ? <a href="{% url 'login' %}">Connectez-vous</a>
+                    </div>
+                    
+                    <div class="terms">
+                        En créant un compte, vous acceptez nos 
+                        <a href="#">Conditions d'utilisation</a> et notre 
+                        <a href="#">Politique de confidentialité</a>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = field.parentElement.querySelector('.password-toggle i');
+    
+    if (field.type === "password") {
+        field.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
+        field.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    }
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    let message = '';
+    let color = '';
+    
+    if (password.length >= 8) strength++;
+    if (password.match(/[a-z]+/)) strength++;
+    if (password.match(/[A-Z]+/)) strength++;
+    if (password.match(/[0-9]+/)) strength++;
+    if (password.match(/[$@#&!]+/)) strength++;
+    
+    switch(strength) {
+        case 0: case 1: message = 'Très faible'; color = '#dc3545'; break;
+        case 2: message = 'Faible'; color = '#ffc107'; break;
+        case 3: message = 'Moyen'; color = '#17a2b8'; break;
+        case 4: message = 'Fort'; color = '#28a745'; break;
+        case 5: message = 'Très fort'; color = '#00c851'; break;
+    }
+    
+    return { strength, message, color, width: (strength / 5) * 100 };
+}
+
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const result = checkPasswordStrength(password);
+    
+    document.getElementById('strengthProgress').style.width = result.width + '%';
+    document.getElementById('strengthProgress').style.backgroundColor = result.color;
+    document.getElementById('strengthText').innerHTML = result.message;
+    document.getElementById('strengthText').style.color = result.color;
+    
+    checkPasswordsMatch();
+});
+
+document.getElementById('passwordConfirm').addEventListener('input', function() {
+    checkPasswordsMatch();
+});
+
+function checkPasswordsMatch() {
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('passwordConfirm').value;
+    const helpText = document.getElementById('passwordMatchHelp');
+    
+    if (confirm.length > 0) {
+        if (password === confirm) {
+            helpText.innerHTML = '✓ Les mots de passe correspondent';
+            helpText.style.color = '#28a745';
+            return true;
+        } else {
+            helpText.innerHTML = '✗ Les mots de passe ne correspondent pas';
+            helpText.style.color = '#dc3545';
+            return false;
+        }
+    }
+    return true;
+}
+
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('passwordConfirm').value;
+    
+    if (password !== confirm) {
+        e.preventDefault();
+        alert('Les mots de passe ne correspondent pas');
+        return false;
+    }
+    
+    if (password.length < 6) {
+        e.preventDefault();
+        alert('Le mot de passe doit contenir au moins 6 caractères');
+        return false;
+    }
+});
+</script>
+</body>
+</html>

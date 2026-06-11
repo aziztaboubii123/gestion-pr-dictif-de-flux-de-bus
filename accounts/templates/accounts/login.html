@@ -1,0 +1,1055 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Wasilni — Portfolio & Connexion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated background */
+.animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.circles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.circles li {
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+}
+
+.circles li:nth-child(1) {
+    left: 25%;
+    width: 80px;
+    height: 80px;
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(2) {
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 2s;
+    animation-duration: 12s;
+}
+
+.circles li:nth-child(3) {
+    left: 70%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 4s;
+}
+
+.circles li:nth-child(4) {
+    left: 40%;
+    width: 60px;
+    height: 60px;
+    animation-delay: 0s;
+    animation-duration: 18s;
+}
+
+.circles li:nth-child(5) {
+    left: 65%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(6) {
+    left: 75%;
+    width: 110px;
+    height: 110px;
+    animation-delay: 3s;
+}
+
+.circles li:nth-child(7) {
+    left: 35%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 7s;
+}
+
+.circles li:nth-child(8) {
+    left: 50%;
+    width: 25px;
+    height: 25px;
+    animation-delay: 15s;
+    animation-duration: 45s;
+}
+
+.circles li:nth-child(9) {
+    left: 20%;
+    width: 15px;
+    height: 15px;
+    animation-delay: 2s;
+    animation-duration: 35s;
+}
+
+.circles li:nth-child(10) {
+    left: 85%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 0s;
+    animation-duration: 11s;
+}
+
+@keyframes animate {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+    100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+}
+
+/* Navigation */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.nav-link {
+    font-weight: 600;
+    color: #333 !important;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #667eea !important;
+    transform: translateY(-2px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+/* Main content */
+.main-content {
+    position: relative;
+    z-index: 1;
+    padding: 80px 0;
+}
+
+/* Hero section */
+.hero-section {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    margin-bottom: 80px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.8s ease;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 30px;
+    margin-top: 40px;
+    animation: fadeInUp 0.8s ease 0.4s both;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    display: block;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+/* Login card */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    animation: fadeInRight 0.8s ease;
+    transition: transform 0.3s;
+}
+
+.login-card:hover {
+    transform: translateY(-5px);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.login-icon i {
+    font-size: 30px;
+    color: white;
+}
+
+.login-card h3 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.login-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.input-group-custom {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group-custom i {
+    position: absolute;
+    left: 15px;
+    color: #667eea;
+    font-size: 1.1rem;
+    z-index: 1;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background: white;
+}
+
+.form-control-custom:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: #999;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    z-index: 1;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.login-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Portfolio section */
+.portfolio-section {
+    padding: 80px 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    margin-bottom: 80px;
+}
+
+.section-title {
+    text-align: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    border-radius: 2px;
+}
+
+.portfolio-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+    margin-bottom: 30px;
+    cursor: pointer;
+}
+
+.portfolio-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.portfolio-image {
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+
+.portfolio-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.portfolio-card:hover .portfolio-image img {
+    transform: scale(1.1);
+}
+
+.portfolio-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(102, 126, 234, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.portfolio-card:hover .portfolio-overlay {
+    opacity: 1;
+}
+
+.portfolio-overlay i {
+    font-size: 3rem;
+    color: white;
+}
+
+.portfolio-info {
+    padding: 20px;
+}
+
+.portfolio-info h4 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.portfolio-info p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.portfolio-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    background: #f0f0f0;
+    color: #667eea;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Services section */
+.services-section {
+    padding: 80px 0;
+    margin-bottom: 80px;
+}
+
+.service-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.service-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.service-icon i {
+    font-size: 35px;
+    color: white;
+}
+
+.service-card h4 {
+    color: white;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.service-card p {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Contact section */
+.contact-section {
+    padding: 80px 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    margin-bottom: 80px;
+}
+
+.contact-info {
+    color: white;
+}
+
+.contact-info h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.contact-details {
+    margin-top: 30px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.contact-item i {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s;
+}
+
+.social-link:hover {
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    transform: translateY(-3px);
+}
+
+.contact-form input,
+.contact-form textarea {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Footer */
+.footer {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 40px 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    
+    .hero-subtitle {
+        text-align: center;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+    
+    .login-card {
+        margin-top: 30px;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+}
+
+/* Alerts */
+.alert-custom {
+    background: linear-gradient(135deg, #020617 0%, #667eea 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="animated-bg">
+    <ul class="circles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-bus"></i> Wasilni
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#home">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#portfolio">Portfolio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#services">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="container">
+        <!-- Hero + Login Section -->
+        <div class="hero-section" id="home">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h1 class="hero-title">Bienvenue sur Wasilni</h1>
+                    <p class="hero-subtitle">
+                        Votre solution de transport intelligente et moderne. 
+                        Découvrez nos services innovants pour une mobilité simplifiée au quotidien.
+                    </p>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">50K+</span>
+                            <span class="stat-label">Utilisateurs</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">100+</span>
+                            <span class="stat-label">Villes</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">99%</span>
+                            <span class="stat-label">Satisfaction</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="login-card">
+                        <div class="login-header">
+                            <div class="login-icon">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h3>Connexion</h3>
+                            <p class="login-subtitle">Accédez à votre compte Wasilni</p>
+                        </div>
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert-custom">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>Nom d'utilisateur</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" name="username" class="form-control-custom" placeholder="Entrez votre nom d'utilisateur" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Mot de passe</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" name="password" id="loginPass" class="form-control-custom" placeholder="Entrez votre mot de passe" required>
+                                    <button class="password-toggle" type="button" onclick="toggleLoginPass()">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-login" type="submit">
+                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                            </button>
+                        </form>
+                        
+                        <div class="login-footer">
+                            Pas encore de compte ? <a href="{% url 'register' %}">Créer un compte</a><br>
+                            <a href="#">Mot de passe oublié ?</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Portfolio Section -->
+        <div class="portfolio-section" id="portfolio">
+            <div class="container">
+                <h2 class="section-title">Notre Portfolio</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="portfolio-card">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400" alt="Transport urbain">
+                                <div class="portfolio-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Transport Urbain</h4>
+                                <p>Solution intelligente pour la gestion des transports en commun dans les grandes villes.</p>
+                                <div class="portfolio-tags">
+                                    <span class="tag">Innovation</span>
+                                    <span class="tag">Mobilité</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="portfolio-card">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1559027615-8452c7cfc5ec?w=400" alt="Logistique">
+                                <div class="portfolio-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Logistique Connectée</h4>
+                                <p>Plateforme de gestion de flotte et optimisation des itinéraires en temps réel.</p>
+                                <div class="portfolio-tags">
+                                    <span class="tag">Logistique</span>
+                                    <span class="tag">IoT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="portfolio-card">
+                            <div class="portfolio-image">
+                                <img src="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=400" alt="Application mobile">
+                                <div class="portfolio-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h4>Application Mobile</h4>
+                                <p>Application intuitive pour réserver et suivre vos trajets en temps réel.</p>
+                                <div class="portfolio-tags">
+                                    <span class="tag">Mobile</span>
+                                    <span class="tag">UX/UI</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Services Section -->
+        <div class="services-section" id="services">
+            <div class="container">
+                <h2 class="section-title">Nos Services</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Analytique Avancée</h4>
+                            <p>Analyse des données de transport pour optimiser vos opérations et réduire les coûts.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h4>Sécurité Maximale</h4>
+                            <p>Systèmes de surveillance et protocoles de sécurité pour des trajets sereins.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h4>Support 24/7</h4>
+                            <p>Une équipe dédiée pour vous accompagner à tout moment, jour et nuit.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Section -->
+        <div class="contact-section" id="contact">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="contact-info">
+                            <h3>Contactez-nous</h3>
+                            <p>Une question ? Un projet ? N'hésitez pas à nous contacter, notre équipe vous répondra dans les meilleurs délais.</p>
+                            
+                            <div class="contact-details">
+                                <div class="contact-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>123 Avenue de la République, Tunis</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>+216 70 123 456</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>contact@wasilni.com</span>
+                                </div>
+                            </div>
+                            
+                            <div class="social-links">
+                                <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-7">
+                        <form class="contact-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control-custom" placeholder="Votre nom" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="email" class="form-control-custom" placeholder="Votre email" required>
+                                </div>
+                            </div>
+                            <input type="text" class="form-control-custom" placeholder="Sujet">
+                            <textarea rows="5" class="form-control-custom" placeholder="Votre message"></textarea>
+                            <button class="btn-login" type="submit">Envoyer le message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h4><i class="fas fa-bus"></i> Wasilni</h4>
+                <p>Votre partenaire de confiance pour une mobilité intelligente et durable.</p>
+            </div>
+            <div class="col-md-3">
+                <h5>Liens rapides</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#home" class="text-white text-decoration-none">Accueil</a></li>
+                    <li><a href="#portfolio" class="text-white text-decoration-none">Portfolio</a></li>
+                    <li><a href="#services" class="text-white text-decoration-none">Services</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>Légal</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white text-decoration-none">Mentions légales</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Confidentialité</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">CGU</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="mt-4">
+        <div class="text-center">
+            <p class="mb-0">© 2026 Wasilni - Tous droits réservés</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleLoginPass() {
+    const p = document.getElementById("loginPass");
+    const icon = document.querySelector(".password-toggle i");
+    if (p.type === "password") {
+        p.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
+        p.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    }
+}
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.portfolio-card, .service-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'all 0.6s ease';
+    observer.observe(el);
+});
+</script>
+</body>
+</html>

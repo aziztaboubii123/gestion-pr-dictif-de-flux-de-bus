@@ -1,0 +1,1972 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Wasilini Dashboard - Suivi des bus en temps réel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Wasilini - Plateforme de suivi des bus en temps réel à Tunis" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ===========================
+           VARIABLES & BASE
+        =========================== */
+        :root {
+            --bg-deep: #0f172a;
+            --bg-dark: #020617;
+            --accent: #667eea;
+            --accent-green: #00c896;
+            --accent-orange: #ff9f43;
+            --text: #cbd5e1;
+            --text-light: #94a3b8;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --header-h: 60px;
+            --sidebar-w: 320px;
+            --card-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar personnalisé */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-green); }
+
+        /* ===========================
+           HEADER
+        =========================== */
+        .main-header {
+            background: var(--bg-dark);
+            border-bottom: 2px solid var(--accent);
+            padding: 0 2rem;
+            height: var(--header-h);
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1100;
+            box-shadow: 0 4px 20px rgba(102,126,234,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .logo-img:hover { transform: scale(1.05) rotate(5deg); }
+
+        .logo-area h4 {
+            color: var(--accent);
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 1.2rem;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 40px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--accent);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+        }
+
+        .nav-item i { font-size: 1rem; }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger) 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0.5rem 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220,53,69,0.4);
+        }
+
+        /* ===========================
+           SIDEBAR
+        =========================== */
+        .external-data-panel {
+            position: fixed;
+            top: var(--header-h);
+            left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - var(--header-h));
+            background: rgba(2,6,23,0.96);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(102,126,234,0.3);
+            padding: 20px 16px;
+            z-index: 998;
+            overflow-y: auto;
+            transition: transform 0.35s ease;
+            scrollbar-width: thin;
+        }
+
+        .external-data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(102,126,234,0.3);
+        }
+
+        .external-data-header h5 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Cartes dans la sidebar */
+        .info-card-sidebar {
+            background: rgba(15,23,42,0.8);
+            border-radius: var(--card-radius);
+            padding: 15px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(102,126,234,0.2);
+            transition: var(--transition);
+        }
+
+        .info-card-sidebar:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        /* ===========================
+           MAP CONTAINER
+        =========================== */
+        .map-container {
+            flex: 1;
+            margin-left: var(--sidebar-w);
+            height: calc(100vh - var(--header-h));
+            position: relative;
+            transition: margin-left 0.35s ease;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-deep);
+        }
+
+        /* ===========================
+           FILTER BOX
+        =========================== */
+        .filter-box {
+            position: absolute;
+            top: 100px;
+            right: 16px;
+            z-index: 1000;
+            background: rgba(2,6,23,0.95);
+            backdrop-filter: blur(12px);
+            padding: 15px;
+            border-radius: var(--card-radius);
+            min-width: 270px;
+            border: 1px solid rgba(102,126,234,0.4);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        /* Responsive */
+        @media (min-width: 768px) {
+        .filter-box {
+        top: 100px;  /* Encore plus bas sur mobile */
+        right: 10px;
+        width: 240px;
+    }
+}
+
+        @media (min-width: 480px) {
+         .filter-box {
+        top: 100px;
+        right: 8px;
+        width: 220px;
+        padding: 10px;
+    }
+}
+
+
+/* Desktop (> 992px) */
+        @media (min-width: 993px) {
+        .filter-box {
+        top: 100px;
+        right: 14px;
+        width: 260px;
+        padding: 12px;
+    }
+}
+
+/* Mobile large (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+        .filter-box {
+        top: 100px;  /* Évite le header */
+        right: 12px;
+        width: 240px;
+        padding: 10px;
+        background: rgba(2,6,23,0.98);
+    }
+}
+
+/* Mobile standard (361px - 480px) */
+        @media (min-width: 361px) and (max-width: 480px) {
+        .filter-box {
+        top: 100px;
+        right: 10px;
+        width: 220px;
+        padding: 8px;
+    }
+}
+
+/* Très petit mobile (≤ 360px) */
+        @media (max-width: 360px) {
+        .filter-box {
+        top: 100px;
+        right: 8px;
+        width: calc(100% - 16px);
+        max-width: 200px;
+        padding: 8px;
+    }
+}
+
+/* Styles internes du filtre */
+        .filter-box .form-control,
+        .filter-box .form-select {
+       background: var(--bg-deep);
+        border: 1px solid rgba(102,126,234,0.4);
+        color: white;
+         font-size: 13px;
+         border-radius: 10px;
+         padding: 8px 12px;
+         transition: all 0.2s ease;
+}
+
+        .filter-box .form-control,
+        .filter-box .form-select {
+            background: var(--bg-deep);
+            border: 1px solid rgba(102,126,234,0.4);
+            color: white;
+            font-size: 13px;
+            border-radius: 10px;
+            padding: 8px 12px;
+        }
+
+        .filter-box .form-control:focus,
+        .filter-box .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+            outline: none;
+        }
+
+        .filter-box .form-check-label {
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* ===========================
+           POPUP BUS STYLES
+        =========================== */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            min-width: 350px;
+            max-width: 400px;
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: white;
+        }
+
+        .bus-popup {
+            background: white;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, var(--accent) 0%, #5a67d8 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .popup-header i { font-size: 20px; }
+        .popup-header h4 { margin: 0; font-size: 15px; font-weight: 600; flex: 1; }
+
+        .popup-body { padding: 16px; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .info-card:hover { transform: scale(1.02); background: #e9ecef; }
+
+        .info-card i { color: var(--accent); font-size: 14px; margin-right: 5px; }
+        .info-label { font-size: 9px; color: #64748b; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-value { font-size: 13px; font-weight: bold; color: #1e293b; display: block; margin-top: 4px; }
+
+        .alert-fire {
+            background: linear-gradient(135deg, var(--danger) 0%, #c82333 100%);
+            color: white;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-align: center;
+            animation: pulse 1s infinite;
+            font-weight: bold;
+        }
+
+        .prediction-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        .prediction-time {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .arrival-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .confidence-high, .confidence-medium, .confidence-low {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .confidence-high { background: var(--success); color: white; }
+        .confidence-medium { background: var(--warning); color: #1e293b; }
+        .confidence-low { background: var(--danger); color: white; }
+
+        /* ===========================
+           CHATBOT
+        =========================== */
+        .chatbot-toggle {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%);
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(102,126,234,0.4);
+            transition: var(--transition);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 6px 25px rgba(102,126,234,0.6);
+        }
+
+        .chatbot-container {
+            position: absolute;
+            bottom: 85px;
+            left: 20px;
+            width: 380px;
+            height: 520px;
+            background: var(--bg-dark);
+            border: 1px solid rgba(102,126,234,0.4);
+            border-radius: 20px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .chatbot-header h5 { margin: 0; font-size: 15px; }
+
+        .chatbot-close { cursor: pointer; font-size: 18px; transition: var(--transition); }
+        .chatbot-close:hover { transform: rotate(90deg); }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .bot-message {
+            background: var(--bg-deep);
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chatbot-input-area {
+            padding: 12px;
+            background: var(--bg-deep);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid rgba(102,126,234,0.3);
+        }
+
+        .chatbot-input {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 1px solid rgba(102,126,234,0.4);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 25px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .chatbot-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+
+        .chatbot-send {
+            background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chatbot-send:hover { transform: scale(1.05); }
+
+        .suggestion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-deep);
+            border-top: 1px solid rgba(102,126,234,0.3);
+        }
+
+        .suggestion-btn {
+            background: var(--bg-dark);
+            border: 1px solid rgba(102,126,234,0.4);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 25px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .suggestion-btn:hover {
+            background: var(--accent);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+        }
+
+        /* ===========================
+           WEATHER & NEWS
+        =========================== */
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(15,23,42,0.8);
+            border-radius: var(--card-radius);
+            padding: 12px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid rgba(102,126,234,0.2);
+        }
+
+        .weather-info:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .weather-temp {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .event-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(15,23,42,0.8);
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .event-item:hover {
+            transform: translateX(6px);
+            background: #1e2a3a;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #5a67d8 100%);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 25px;
+            padding: 5px 14px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(102,126,234,0.4);
+        }
+
+        /* ===========================
+           STATS SECTION
+        =========================== */
+        .stat-item {
+            background: rgba(15,23,42,0.8);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            border: 1px solid rgba(102,126,234,0.2);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* ===========================
+           WS STATUS
+        =========================== */
+        .ws-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            padding: 5px 15px;
+            background: var(--bg-dark);
+            border: 1px solid var(--accent);
+            border-radius: 30px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .ws-status.connected { border-color: var(--success); }
+        .ws-status.disconnected { border-color: var(--danger); }
+
+        /* ===========================
+           OVERLAY PANEL
+        =========================== */
+        .overlay-panel {
+            position: fixed;
+            top: calc(var(--header-h) + 15px);
+            left: calc(var(--sidebar-w) + 20px);
+            right: 20px;
+            background: rgba(2,6,23,0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            display: none;
+            z-index: 1050;
+            border: 1px solid rgba(102,126,234,0.4);
+            max-height: calc(100vh - 90px);
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .close-btn:hover { color: var(--danger); transform: rotate(90deg); }
+
+        /* ===========================
+           MOBILE
+        =========================== */
+        .mobile-info-fab {
+            display: none;
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            z-index: 1001;
+            width: 50px;
+            height: 50px;
+            background: var(--bg-dark);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: var(--transition);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 997;
+            backdrop-filter: blur(3px);
+        }
+
+        .sidebar-overlay.active { display: block; }
+
+        /* ===========================
+           ANIMATIONS
+        =========================== */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fa-spin { animation: spin 1s linear infinite; }
+
+        /* ===========================
+           RESPONSIVE
+        =========================== */
+        @media (max-width: 992px) {
+            :root { --sidebar-w: 280px; }
+            .filter-box { min-width: 240px; }
+        }
+
+        @media (max-width: 768px) {
+            .main-header { padding: 0 1rem; }
+            .logo-area h4 { font-size: 1.2rem; }
+            .nav-item span { display: none; }
+            .nav-item i { font-size: 1.2rem; margin: 0; }
+            .nav-item { padding: 0.5rem; }
+            .logout-btn span { display: none; }
+            .logout-btn { padding: 0.5rem 0.8rem; }
+            
+            .external-data-panel {
+                transform: translateX(-105%);
+                width: 85%;
+            }
+            .external-data-panel.mobile-open { transform: translateX(0); }
+            .map-container { margin-left: 0 !important; }
+            .mobile-info-fab { display: flex; }
+            
+            .filter-box {
+                top: 10px;
+                right: 10px;
+                min-width: 220px;
+                padding: 10px;
+            }
+            
+            .chatbot-container {
+                left: 10px;
+                width: calc(100vw - 20px);
+                max-width: 380px;
+                height: 480px;
+            }
+            
+            .overlay-panel {
+                left: 10px;
+                right: 10px;
+                top: 70px;
+            }
+            
+            .custom-popup .leaflet-popup-content {
+                min-width: 280px;
+                max-width: 320px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-box { min-width: 200px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .chatbot-container { height: 420px; }
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner i {
+            font-size: 30px;
+            color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+        .map-toggle-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--bg-dark);
+    border: 1px solid var(--accent);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.map-toggle-btn:hover { background: var(--accent); color: var(--bg-dark); transform: scale(1.05); }
+@media (max-width: 768px) { .map-toggle-btn { bottom: 80px; right: 10px; padding: 8px 14px; font-size: 12px; } }
+    </style>
+</head>
+
+<body>
+    <!-- SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <div class="logo-area">
+            <img src="{% static 'images/logo.png' %}" alt="Wasilni Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/40?text=W'">
+            <h4>Wasilni</h4>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" onclick="openPanel('dashboard')"><i class="fa fa-map"></i><span> Dashboard</span></a>
+            <a class="nav-item" onclick="openPanel('bus')"><i class="fa fa-bus"></i><span> Bus</span></a>
+            <a class="nav-item" onclick="openPanel('stations')"><i class="fa fa-location-dot"></i><span> Stations</span></a>
+            <a class="nav-item" onclick="openPanel('alerts')"><i class="fa fa-triangle-exclamation"></i><span> Alertes</span></a>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span> Déconnexion</span></button>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <!-- SIDEBAR -->
+        <div class="external-data-panel" id="externalDataPanel">
+            <div class="external-data-header">
+                <h5><i class="fas fa-cloud-sun me-2"></i>Informations en direct</h5>
+                <button class="refresh-btn" onclick="refreshAllData()">
+                    <i class="fas fa-sync-alt me-1"></i>Actualiser
+                </button>
+            </div>
+
+            <!-- Météo -->
+            <div id="weatherSection">
+                <div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i><div style="margin-top:8px;">Chargement météo...</div></div>
+            </div>
+
+            <!-- Actualités -->
+            <div class="mt-3">
+                <h6 style="color: var(--accent-green); margin-bottom: 12px;">
+                    <i class="fas fa-newspaper me-2"></i>Actualités Tunis
+                </h6>
+                <div id="eventsSection"></div>
+            </div>
+
+            <!-- Derniers tweets -->
+            <div class="mt-3">
+                <h6 style="color: var(--accent-green); margin-bottom: 12px;">
+                    <i class="fab fa-twitter me-2"></i>Derniers tweets
+                </h6>
+                <div id="socialSection"></div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="mt-3">
+                <h6 style="color: var(--accent-green); margin-bottom: 12px;">
+                    <i class="fas fa-chart-bar me-2"></i>Statistiques
+                </h6>
+                <div id="statsSection">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statBusCount">0</div>
+                        <div>Bus en ligne</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statAlertCount" style="color: var(--danger);">0</div>
+                        <div>Alertes incendie</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statLineCount">0</div>
+                        <div>Lignes actives</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAP CONTAINER -->
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- FILTER BOX -->
+            <div class="filter-box">
+                <input type="text" id="searchInput" class="form-control mb-2" 
+                       placeholder="🔍 Rechercher ligne ou station..." onkeyup="searchMap()">
+                <div id="searchStats" class="search-stats mb-2" style="font-size: 11px; color: var(--accent);"></div>
+                <select id="lineSelect" class="form-select mb-2" onchange="handleLineSelect(this.value)">
+                    <option value="all">Toutes les lignes</option>
+                </select>
+                <select id="busFilterSelect" class="form-select mb-2" onchange="filterBus(this.value)">
+                    <option value="all">Tous les bus</option>
+                    <option value="alerts">Alertes incendie uniquement</option>
+                </select>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="highlightOnly" onchange="handleHighlightOnlyChange()">
+                    <label class="form-check-label" for="highlightOnly">Masquer les autres lignes</label>
+                </div>
+                <div id="selectedLineInfo" class="mt-2 text-center" style="display:none;">
+                    <span class="badge bg-warning text-dark" id="selectedLineBadge"></span>
+                    <button class="btn btn-sm btn-outline-light mt-1 w-100" onclick="clearLineSelection()">
+                        <i class="fas fa-times me-1"></i>Réinitialiser
+                    </button>
+                </div>
+            </div>
+            <!-- Bouton changement vue carte -->
+    <div class="map-toggle-btn" onclick="toggleMapLayer()">
+    <i class="fas fa-map" id="mapToggleIcon"></i>
+    <span id="mapToggleText">Satellite</span>
+    </div>
+
+            <!-- CHATBOT -->
+            <div class="chatbot-toggle" onclick="toggleChatbot()" id="chatbotToggle">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="chatbot-container" id="chatbotContainer">
+                <div class="chatbot-header">
+                    <h5><i class="fas fa-robot me-2"></i>Assistant Wasilni</h5>
+                    <span class="chatbot-close" onclick="toggleChatbot()">✕</span>
+                </div>
+                <div class="chatbot-messages" id="chatbotMessages">
+                    <div class="message bot-message">
+                        <i class="fas fa-bus me-2"></i>Bonjour ! Je suis l'assistant intelligent de Wasilni.<br><br>
+                        <strong>Exemples :</strong><br>
+                        • "Météo à Tunis"<br>
+                        • "Actualités aujourd'hui"<br>
+                        • "Bus en ligne"<br>
+                        • "Ligne 5"<br>
+                        • "Aide"
+                    </div>
+                </div>
+                <div class="suggestion-buttons">
+                    <button class="suggestion-btn" onclick="sendSuggestion('Météo à Tunis')">☀️ Météo</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Actualités')">📰 Actualités</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Bus en ligne')">🚍 Bus</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Ligne 5')">🛣️ Ligne 5</button>
+                    <button class="suggestion-btn" onclick="sendSuggestion('Aide')">❓ Aide</button>
+                </div>
+                <div class="chatbot-input-area">
+                    <input type="text" class="chatbot-input" id="chatbotInput" 
+                           placeholder="Posez votre question..." onkeypress="handleKeyPress(event)">
+                    <button class="chatbot-send" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY PANEL -->
+    <div id="panel" class="overlay-panel">
+        <span class="close-btn" onclick="closePanel()">✖</span>
+        <div id="panelContent"></div>
+    </div>
+
+    <!-- MOBILE FAB -->
+    <div class="mobile-info-fab" id="mobileInfoFab" onclick="toggleMobileSidebar()" title="Infos en direct">
+        <i class="fas fa-chart-simple"></i>
+    </div>
+
+    <!-- WS STATUS -->
+    <div id="wsStatus" class="ws-status disconnected">
+        <i class="fas fa-circle"></i>
+        <span>Déconnecté</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /* ============================================================================
+           CONFIGURATION & CONSTANTES
+        ============================================================================ */
+        const API_FLASK = "http://localhost:5001";
+        const API_CONFIG = {
+            weather: { 
+                apiKey: "621c2a4729dd45e3d3ba314c130eb1c8", 
+                baseUrl: "https://api.openweathermap.org/data/2.5",
+                iconUrl: "https://openweathermap.org/img/wn"
+            },
+            news: { 
+                apiKey: "pub_4b40577c83884bceb8cf0981288a3e2a", 
+                baseUrl: "https://newsdata.io/api/1" 
+            }
+        };
+
+        /* ============================================================================
+           GLOBAL VARIABLES
+        ============================================================================ */
+        let map = null;
+        let validLineNumbers = [];
+        let busMarkers = [];
+        let linePolylines = {};
+        let lineOriginalStyle = {};
+        let arretsList = [];
+        let weatherData = null;
+        let newsData = null;
+        let tweetsData = null;
+        let selectedLineNumber = null;
+        let websocket = null;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT = 5;
+
+        /* ============================================================================
+           HELPER FUNCTIONS
+        ============================================================================ */
+        function logout() {
+            window.location.href = "{% url 'login' %}";
+        }
+
+        // Haversine distance calculation
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dlat = (lat2 - lat1) * Math.PI / 180;
+            const dlon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dlat/2) * Math.sin(dlat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dlon/2) * Math.sin(dlon/2);
+            const c = 2 * Math.asin(Math.sqrt(a));
+            return R * c;
+        }
+
+        // Format time
+        function formatTime(date) {
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        /* ============================================================================
+           STOP DETECTION FUNCTIONS
+        ============================================================================ */
+        function findNearestStop(busLat, busLng, lineId) {
+            const lineStops = arretsList.filter(stop => stop.idligne == lineId);
+            if (lineStops.length === 0) return null;
+            
+            let nearestStop = null;
+            let minDistance = Infinity;
+            
+            for (const stop of lineStops) {
+                const distance = calculateDistance(busLat, busLng, stop.lat, stop.lng);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestStop = stop;
+                }
+            }
+            return { stop: nearestStop, distance: minDistance, name: nearestStop?.nom || "Arrêt inconnu" };
+        }
+
+        function findPreviousStop(busLat, busLng, lineId) {
+            const lineStops = arretsList
+                .filter(stop => stop.idligne == lineId)
+                .sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+            
+            if (lineStops.length === 0) return null;
+            
+            let nearestIndex = 0;
+            let minDistance = Infinity;
+            
+            for (let i = 0; i < lineStops.length; i++) {
+                const distance = calculateDistance(busLat, busLng, lineStops[i].lat, lineStops[i].lng);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestIndex = i;
+                }
+            }
+            
+            const previousIndex = Math.max(0, nearestIndex - 1);
+            const isExactlyAtStop = minDistance < 0.05;
+            const startStop = isExactlyAtStop ? lineStops[nearestIndex] : lineStops[previousIndex];
+            
+            return {
+                startStop: startStop,
+                startStopName: startStop?.nom || "Départ",
+                nearestStop: lineStops[nearestIndex],
+                nearestStopName: lineStops[nearestIndex]?.nom || "Arrivée",
+                distanceToNearest: minDistance,
+                isExactlyAtStop: isExactlyAtStop
+            };
+        }
+
+        /* ============================================================================
+           PREDICTION FUNCTION
+        ============================================================================ */
+        async function loadPrediction(busId, routeId, busSpeed, busLat, busLng) {
+            const container = document.getElementById(`pred-${busId}`);
+            if (!container) return;
+            
+            const stopInfo = findPreviousStop(busLat, busLng, routeId);
+            
+            if (!stopInfo || !stopInfo.startStop) {
+                container.innerHTML = `<div class="prediction-error" style="text-align:center;padding:10px;color:#dc3545;">Aucun arrêt trouvé pour cette ligne</div>`;
+                return;
+            }
+            
+            const startStop = stopInfo.startStopName;
+            const endStop = stopInfo.nearestStopName;
+            const distanceToEnd = stopInfo.distanceToNearest;
+            
+            console.log(`📊 Prédiction bus ${busId}: ${startStop} → ${endStop} (${distanceToEnd.toFixed(2)} km)`);
+            
+            try {
+                const trafficRes = await fetch(`${API_FLASK}/api/realtime?route=${encodeURIComponent(routeId)}&city=tunis`);
+                const trafficData = await trafficRes.json();
+                let trafficLevel = 50;
+                if (trafficData.success && trafficData.traffic) {
+                    trafficLevel = trafficData.traffic.level || 50;
+                }
+                
+                let speed = busSpeed;
+                let trafficFactor = 1 + (trafficLevel / 100) * 0.5;
+                let estimatedTime = (distanceToEnd / speed) * 60 * trafficFactor;
+                estimatedTime = Math.max(1, Math.min(60, Math.round(estimatedTime)));
+                
+                const arrival = new Date(Date.now() + estimatedTime * 60000);
+                const arrivalStr = formatTime(arrival);
+                
+                let confidenceClass = distanceToEnd < 0.5 ? 'high' : (distanceToEnd < 2 ? 'medium' : 'low');
+                let confidenceText = confidenceClass === 'high' ? 'Élevée' : (confidenceClass === 'medium' ? 'Moyenne' : 'Faible');
+                
+                container.innerHTML = `
+                    <div class="prediction-box">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:8px;">
+                            <span><i class="fas fa-play-circle"></i> <strong>${startStop.substring(0, 20)}</strong></span>
+                            <span><i class="fas fa-arrow-right"></i></span>
+                            <span><strong>${endStop.substring(0, 20)}</strong> <i class="fas fa-flag-checkered"></i></span>
+                        </div>
+                        <div class="prediction-time">${estimatedTime} <span style="font-size:12px;">minutes</span></div>
+                        <div class="arrival-badge">
+                            <i class="far fa-clock"></i> Arrivée vers ${arrivalStr}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:10px;">
+                            <span><i class="fas fa-road"></i> ${distanceToEnd.toFixed(1)} km</span>
+                            <span><i class="fas fa-tachometer-alt"></i> ${speed} km/h</span>
+                            <span><i class="fas fa-car"></i> ${trafficLevel}%</span>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <span class="confidence-${confidenceClass}">Confiance: ${confidenceText}</span>
+                        </div>
+                    </div>
+                `;
+            } catch(e) {
+                console.error("Erreur prédiction:", e);
+                container.innerHTML = `<div class="prediction-error" style="text-align:center;padding:10px;color:#dc3545;">Service de prédiction indisponible</div>`;
+            }
+        }
+
+        /* ============================================================================
+           CREATE BUS POPUP
+        ============================================================================ */
+        function createPopupContent(bus, busLineNumber, isValid, busId, lat, lng, busSpeed) {
+            const hasFire = bus.statut === "incendie";
+            const displayLine = busLineNumber || '?';
+            
+            let predictionHtml = isValid ? 
+                `<div id="pred-${busId}" class="prediction-loading" style="text-align:center;padding:12px;">
+                    <i class="fas fa-spinner fa-spin"></i> Calcul du temps d'arrivée...
+                </div>` :
+                `<div class="offline-message" style="background:#ffc107;color:#1e293b;padding:10px;border-radius:10px;text-align:center;margin-top:10px;">
+                    <i class="fas fa-exclamation-triangle"></i> Bus hors ligne - ne fait pas partie du réseau
+                </div>`;
+            
+            return `
+                <div class="bus-popup">
+                    <div class="popup-header" style="background: ${hasFire ? 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)' : 'linear-gradient(135deg, #667eea 0%, #5a67d8 100%)'}">
+                        <i class="fas fa-bus"></i>
+                        <h4>${bus.immatriculation || "Bus Wasilni"}</h4>
+                        ${hasFire ? '<i class="fas fa-fire" style="font-size:18px;"></i>' : '<i class="fas fa-wifi"></i>'}
+                    </div>
+                    <div class="popup-body">
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <i class="fas fa-tag"></i>
+                                <span class="info-label">Modèle</span>
+                                <span class="info-value">${bus.modele || "Standard"}</span>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-road"></i>
+                                <span class="info-label">Kilométrage</span>
+                                <span class="info-value">${(bus.kilometrage || 0).toLocaleString()} km</span>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-chart-line"></i>
+                                <span class="info-label">Statut</span>
+                                <span class="info-value">${bus.statut === 'incendie' ? '⚠️ ALERTE' : (bus.statut || 'En service')}</span>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-route"></i>
+                                <span class="info-label">Ligne</span>
+                                <span class="info-value">${displayLine}</span>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span class="info-label">Vitesse</span>
+                                <span class="info-value" id="speed-${busId}">${Math.round(busSpeed)} km/h</span>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span class="info-label">Position</span>
+                                <span class="info-value">${lat.toFixed(4)}, ${lng.toFixed(4)}</span>
+                            </div>
+                        </div>
+                        ${predictionHtml}
+                        ${hasFire ? '<div class="alert-fire mt-2"><i class="fas fa-fire me-1"></i> ALERTE INCENDIE - Intervention en cours <i class="fas fa-fire ms-1"></i></div>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ============================================================================
+           WEATHER API
+        ============================================================================ */
+        async function fetchRealWeather(city = 'Tunis') {
+            try {
+                const url = `${API_CONFIG.weather.baseUrl}/weather?q=${city}&appid=${API_CONFIG.weather.apiKey}&units=metric&lang=fr`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Weather API error');
+                const data = await response.json();
+                return {
+                    temperature: Math.round(data.main.temp),
+                    feelsLike: Math.round(data.main.feels_like),
+                    condition: data.weather[0].main,
+                    description: data.weather[0].description,
+                    icon: data.weather[0].icon,
+                    humidity: data.main.humidity,
+                    windSpeed: data.wind.speed,
+                    pressure: data.main.pressure,
+                    city: data.name,
+                    iconUrl: `${API_CONFIG.weather.iconUrl}/${data.weather[0].icon}@2x.png`
+                };
+            } catch (error) {
+                console.error('Weather error:', error);
+                return {
+                    temperature: 22, feelsLike: 21, condition: 'Clear', description: 'ciel dégagé',
+                    icon: '01d', humidity: 65, windSpeed: 12, pressure: 1016, city: 'Tunis',
+                    iconUrl: 'https://openweathermap.org/img/wn/01d@2x.png'
+                };
+            }
+        }
+
+        /* ============================================================================
+           NEWS API
+        ============================================================================ */
+        async function fetchRealNews(query = 'Tunis transport') {
+            try {
+                const url = `${API_CONFIG.news.baseUrl}/latest?apikey=${API_CONFIG.news.apiKey}&q=${encodeURIComponent(query)}&language=fr&size=4`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('News API error');
+                const data = await response.json();
+                if (data.status === 'success' && data.results?.length) {
+                    return data.results.map(item => ({
+                        title: item.title,
+                        source: item.source_id || 'Source',
+                        description: item.description || item.content || '',
+                        pubDate: new Date(item.pubDate).toLocaleDateString('fr-FR'),
+                        link: item.link,
+                        category: item.category ? item.category[0] : 'Actualité'
+                    }));
+                }
+                return getFallbackNews();
+            } catch (error) {
+                console.error('News error:', error);
+                return getFallbackNews();
+            }
+        }
+
+        function getFallbackNews() {
+            return [
+                { title: 'Nouvelle ligne de bus électriques à Tunis', source: 'Transport Tunis', description: 'La municipalité lance une nouvelle ligne écologique.', pubDate: new Date().toLocaleDateString('fr-FR'), category: 'Transport' },
+                { title: 'Forum international de la mobilité', source: 'Eco News', description: 'Tunis accueille le premier forum sur la mobilité durable.', pubDate: new Date().toLocaleDateString('fr-FR'), category: 'Économie' },
+                { title: 'Amélioration du réseau de transport', source: 'Municipalité', description: 'Nouvelles mesures pour fluidifier le trafic.', pubDate: new Date().toLocaleDateString('fr-FR'), category: 'Urbanisme' }
+            ];
+        }
+
+        /* ============================================================================
+           TWEETS SIMULATION
+        ============================================================================ */
+        function getSimulatedTweets() {
+            return [
+                { username: '@TransportTN', content: '🚍 Nouveaux bus électriques sur la ligne 5 à Tunis !', likes: 234, retweets: 56, time: 'Il y a 2h', icon: 'fa-twitter' },
+                { username: '@MobilityTunis', content: '⚠️ Travaux sur la ligne de métro léger ce weekend.', likes: 89, retweets: 23, time: 'Il y a 5h', icon: 'fa-twitter' },
+                { username: '@VoyageurTN', content: '👏 Bravo à Wasilni pour la ponctualité aujourd\'hui !', likes: 145, retweets: 32, time: 'Il y a 1j', icon: 'fa-twitter' },
+                { username: '@TunisTrafic', content: '🐢 Trafic dense sur l\'avenue Habib Bourguiba.', likes: 67, retweets: 12, time: 'Il y a 3h', icon: 'fa-twitter' }
+            ];
+        }
+
+        /* ============================================================================
+           UPDATE UI FUNCTIONS
+        ============================================================================ */
+        async function updateWeatherUI() {
+            weatherData = await fetchRealWeather('Tunis');
+            document.getElementById('weatherSection').innerHTML = `
+                <div class="weather-info">
+                    <div><img src="${weatherData.iconUrl}" alt="météo" style="width:55px;"></div>
+                    <div>
+                        <div class="weather-temp">${weatherData.temperature}°C</div>
+                        <div class="weather-desc">${weatherData.description}</div>
+                        <div style="font-size: 11px; margin-top: 5px;">
+                            💧 ${weatherData.humidity}% | 🌬️ ${weatherData.windSpeed} m/s
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateNewsUI(news) {
+            const newsData = news || getFallbackNews();
+            document.getElementById('eventsSection').innerHTML = newsData.slice(0,4).map(item => `
+                <div class="event-item">
+                    <i class="fas fa-newspaper me-2" style="color: var(--accent);"></i>
+                    <strong>${item.title}</strong><br>
+                    <small><i class="fas fa-clock me-1"></i>${item.pubDate}</small>
+                    <div class="event-time">${item.description.substring(0, 80)}${item.description.length > 80 ? '...' : ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateTweetsUI(tweets) {
+            const tweetsData = tweets || getSimulatedTweets();
+            document.getElementById('socialSection').innerHTML = tweetsData.slice(0,4).map(t => `
+                <div class="social-item">
+                    <i class="fab ${t.icon} me-2" style="color: var(--accent-green);"></i>
+                    <strong>${t.username}</strong><br>
+                    <small>${t.content}</small>
+                    <div class="social-stats mt-1">
+                        <span><i class="far fa-heart"></i> ${t.likes}</span>
+                        <span><i class="fas fa-retweet"></i> ${t.retweets}</span>
+                        <span><i class="far fa-clock"></i> ${t.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(busCount, alertCount, lineCount) {
+            document.getElementById('statBusCount').textContent = busCount;
+            document.getElementById('statAlertCount').textContent = alertCount;
+            document.getElementById('statLineCount').textContent = lineCount;
+        }
+
+        async function refreshAllData() {
+            const refreshIcon = document.querySelector('.refresh-btn i');
+            if (refreshIcon) {
+                refreshIcon.className = 'fas fa-sync-alt fa-spin';
+            }
+            await updateWeatherUI();
+            const news = await fetchRealNews();
+            updateNewsUI(news);
+            updateTweetsUI(getSimulatedTweets());
+            if (refreshIcon) {
+                setTimeout(() => {
+                    refreshIcon.className = 'fas fa-sync-alt';
+                }, 1000);
+            }
+        }
+
+        /* ============================================================================
+           MAP & UI FUNCTIONS
+        ============================================================================ */
+        function selectLine(lineNum) {
+            selectedLineNumber = lineNum;
+            const highlightOnly = document.getElementById('highlightOnly').checked;
+            document.getElementById('selectedLineInfo').style.display = 'block';
+            document.getElementById('selectedLineBadge').textContent = `Ligne ${lineNum} sélectionnée`;
+            document.getElementById('lineSelect').value = lineNum;
+            
+            Object.entries(linePolylines).forEach(([num, poly]) => {
+                if (num == lineNum) {
+                    poly.setStyle({ color: '#FF4500', weight: 7, opacity: 1 });
+                    poly.bringToFront();
+                    if (map) map.fitBounds(poly.getBounds(), { padding: [50, 50], maxZoom: 15 });
+                } else {
+                    if (highlightOnly) {
+                        poly.setStyle({ opacity: 0, fillOpacity: 0 });
+                    } else {
+                        const originalStyle = lineOriginalStyle[num] || { color: '#667eea', weight: 4, opacity: 0.6 };
+                        poly.setStyle({ ...originalStyle, opacity: 0.3 });
+                    }
+                }
+            });
+        }
+
+        function clearLineSelection() {
+            selectedLineNumber = null;
+            document.getElementById('selectedLineInfo').style.display = 'none';
+            document.getElementById('lineSelect').value = 'all';
+            document.getElementById('searchInput').value = '';
+            
+            Object.entries(linePolylines).forEach(([num, poly]) => {
+                const originalStyle = lineOriginalStyle[num] || { color: '#667eea', weight: 4, opacity: 0.8 };
+                poly.setStyle(originalStyle);
+            });
+            
+            if (map) map.setView([36.8065, 10.1815], 13);
+        }
+
+        function handleLineSelect(value) {
+            if (value === 'all') {
+                clearLineSelection();
+            } else {
+                selectLine(value);
+                document.getElementById('searchInput').value = `Ligne ${value}`;
+            }
+        }
+
+        function searchMap() {
+            const term = document.getElementById('searchInput').value.toLowerCase().trim();
+            const highlightOnly = document.getElementById('highlightOnly').checked;
+            
+            if (term === '') {
+                clearLineSelection();
+                return;
+            }
+            
+            let foundLines = [];
+            Object.entries(linePolylines).forEach(([num, poly]) => {
+                const lineNumStr = num.toString().toLowerCase();
+                const matches = lineNumStr.includes(term) || `ligne ${lineNumStr}`.includes(term);
+                
+                if (matches) {
+                    poly.setStyle({ color: '#FFD700', weight: 6, opacity: 1 });
+                    poly.bringToFront();
+                    foundLines.push(num);
+                } else {
+                    if (highlightOnly) {
+                        poly.setStyle({ opacity: 0 });
+                    } else {
+                        const originalStyle = lineOriginalStyle[num] || { color: '#667eea', weight: 4, opacity: 0.6 };
+                        poly.setStyle({ ...originalStyle, opacity: 0.25 });
+                    }
+                }
+            });
+            
+            const statsDiv = document.getElementById('searchStats');
+            if (foundLines.length > 0) {
+                statsDiv.innerHTML = `<span class="highlight-color">🔍 ${foundLines.length} ligne(s) trouvée(s): ${foundLines.join(', ')}</span>`;
+                if (foundLines.length === 1) {
+                    selectLine(foundLines[0]);
+                }
+            } else {
+                statsDiv.innerHTML = `<span style="color: #ff6b6b;">❌ Aucune ligne trouvée pour "${term}"</span>`;
+            }
+        }
+
+        function filterBus(type) {
+            busMarkers.forEach(marker => {
+                if (type === 'alerts') {
+                    const hasFire = marker.busData?.hasFire === true;
+                    marker.setOpacity(hasFire ? 1 : 0.3);
+                } else {
+                    marker.setOpacity(1);
+                }
+            });
+        }
+
+        function handleHighlightOnlyChange() {
+            if (selectedLineNumber) {
+                selectLine(selectedLineNumber);
+            } else {
+                const searchTerm = document.getElementById('searchInput').value;
+                if (searchTerm) {
+                    searchMap();
+                } else {
+                    Object.entries(linePolylines).forEach(([num, poly]) => {
+                        const originalStyle = lineOriginalStyle[num] || { color: '#667eea', weight: 4, opacity: 0.8 };
+                        poly.setStyle(originalStyle);
+                    });
+                }
+            }
+        }
+
+        /* ============================================================================
+           PANEL FUNCTIONS
+        ============================================================================ */
+        function openPanel(type) {
+            const panel = document.getElementById('panel');
+            const content = document.getElementById('panelContent');
+            
+            if (type === 'dashboard') {
+                content.innerHTML = `
+                    <h4><i class="fas fa-tachometer-alt me-2"></i>Tableau de bord</h4>
+                    <p>Bienvenue sur le tableau de bord Wasilni - Suivi des bus en temps réel à Tunis.</p>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="stat-item" style="background:rgba(102,126,234,0.2);">
+                                <div class="stat-value">${busMarkers.length}</div>
+                                <div>Bus en ligne</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item" style="background:rgba(220,53,69,0.2);">
+                                <div class="stat-value">${busMarkers.filter(m => m.busData?.hasFire).length}</div>
+                                <div>Alertes incendie</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item" style="background:rgba(0,200,150,0.2);">
+                                <div class="stat-value">${Object.keys(linePolylines).length}</div>
+                                <div>Lignes actives</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6><i class="fas fa-chart-line me-2"></i>Performance du réseau</h6>
+                        <canvas id="performanceChart" height="200"></canvas>
+                    </div>
+                `;
+                if (typeof Chart !== 'undefined') {
+                    new Chart(document.getElementById('performanceChart'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                            datasets: [{
+                                label: 'Bus actifs',
+                                data: [32, 35, 38, 37, 36, 30, 28],
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102,126,234,0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: true }
+                    });
+                }
+            } else if (type === 'bus') {
+                const busList = busMarkers.map(m => `
+                    <div class="info-card-sidebar" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong><i class="fas fa-bus me-2"></i>${m.busData?.immatriculation || 'Bus'}</strong><br>
+                            <small>Ligne ${m.busData?.lineNumber || '?'} | ${m.busData?.speed || 30} km/h</small>
+                        </div>
+                        ${m.busData?.hasFire ? '<span class="badge bg-danger"><i class="fas fa-fire"></i> Alerte</span>' : '<span class="badge bg-success">Actif</span>'}
+                    </div>
+                `).join('');
+                content.innerHTML = `<h4><i class="fas fa-bus me-2"></i>Bus actifs (${busMarkers.length})</h4>${busList || '<p>Aucun bus en circulation.</p>'}`;
+            } else if (type === 'stations') {
+                content.innerHTML = `<h4><i class="fas fa-location-dot me-2"></i>Stations du réseau</h4>
+                    <p>${arretsList.length} stations sont affichées sur la carte avec des marqueurs verts.</p>
+                    <div class="mt-3" style="max-height: 400px; overflow-y: auto;">
+                        ${arretsList.slice(0, 30).map(a => `<div class="event-item"><i class="fas fa-map-marker-alt me-2" style="color:var(--accent-green);"></i>${a.nom}</div>`).join('')}
+                        ${arretsList.length > 30 ? `<div class="text-center mt-2"><small>+ ${arretsList.length - 30} autres stations</small></div>` : ''}
+                    </div>`;
+            } else if (type === 'alerts') {
+                const fires = busMarkers.filter(m => m.busData?.hasFire);
+                content.innerHTML = `<h4><i class="fas fa-triangle-exclamation me-2"></i>Alertes incendie</h4>
+                    ${fires.length ? fires.map(m => `<div class="alert-fire" style="margin-bottom:10px;"><i class="fas fa-fire me-2"></i>Bus ${m.busData?.immatriculation} - Ligne ${m.busData?.lineNumber}</div>`).join('') : '<p>Aucune alerte en cours.</p>'}`;
+            }
+            
+            panel.style.display = 'block';
+        }
+
+        function closePanel() {
+            document.getElementById('panel').style.display = 'none';
+        }
+
+        /* ============================================================================
+           MOBILE FUNCTIONS
+        ============================================================================ */
+        function toggleMobileSidebar() {
+            const panel = document.getElementById('externalDataPanel');
+            const overlay = document.getElementById('sidebarOverlay');
+            panel.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('externalDataPanel').classList.remove('mobile-open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        /* ============================================================================
+           CHATBOT
+        ============================================================================ */
+        let chatbotOpen = false;
+        
+        function toggleChatbot() {
+            const container = document.getElementById('chatbotContainer');
+            chatbotOpen = !chatbotOpen;
+            container.style.display = chatbotOpen ? 'flex' : 'none';
+        }
+
+        function addUserMessage(text) {
+            const msgs = document.getElementById('chatbotMessages');
+            const time = formatTime(new Date());
+            msgs.innerHTML += `<div class="message user-message">${text}<div class="timestamp" style="font-size:9px; margin-top:4px;">${time}</div></div>`;
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const msgs = document.getElementById('chatbotMessages');
+            const time = formatTime(new Date());
+            msgs.innerHTML += `<div class="message bot-message">${text}<div class="timestamp" style="font-size:9px; margin-top:4px;">${time}</div></div>`;
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        async function processBotResponse(msg) {
+            const lowerMsg = msg.toLowerCase();
+            
+            if (lowerMsg.includes('météo')) {
+                const weather = await fetchRealWeather('Tunis');
+                addBotMessage(`☀️ <strong>Météo à ${weather.city}</strong><br>• Température: ${weather.temperature}°C (ressenti ${weather.feelsLike}°C)<br>• Conditions: ${weather.description}<br>• Humidité: ${weather.humidity}% | Vent: ${weather.windSpeed} m/s`);
+            } 
+            else if (lowerMsg.includes('bus en ligne') || (lowerMsg.includes('combien') && lowerMsg.includes('bus'))) {
+                const count = busMarkers.length;
+                const alerts = busMarkers.filter(m => m.busData?.hasFire).length;
+                addBotMessage(`🚍 <strong>État du réseau</strong><br>• ${count} bus actuellement en circulation<br>• ${alerts} bus en état d'alerte incendie<br>• ${Object.keys(linePolylines).length} lignes en service`);
+            }
+            else if (lowerMsg.match(/ligne\s*\d+/)) {
+                const match = lowerMsg.match(/ligne\s*(\d+)/);
+                if (match) {
+                    const lineNum = match[1];
+                    addBotMessage(`🛣️ Affichage de la ligne ${lineNum} sur la carte...`);
+                    if (linePolylines[lineNum]) {
+                        selectLine(lineNum);
+                    } else {
+                        addBotMessage(`❌ La ligne ${lineNum} n'existe pas dans notre réseau.`);
+                    }
+                } else {
+                    addBotMessage(`Veuillez préciser un numéro de ligne, exemple: "Ligne 5"`);
+                }
+            }
+            else if (lowerMsg.includes('actualités') || lowerMsg.includes('news')) {
+                const news = await fetchRealNews();
+                const newsText = news.slice(0, 3).map(n => `• ${n.title}`).join('<br>');
+                addBotMessage(`📰 <strong>Actualités des transports</strong><br>${newsText}<br><br>Consultez le panneau latéral pour plus d'informations.`);
+            }
+            else if (lowerMsg.includes('aide') || lowerMsg.includes('help')) {
+                addBotMessage(`🤖 <strong>Commandes disponibles</strong><br>
+                    • "Météo" - Météo à Tunis<br>
+                    • "Bus en ligne" - État du trafic<br>
+                    • "Ligne X" - Afficher une ligne (ex: Ligne 5)<br>
+                    • "Actualités" - Dernières actualités<br>
+                    • "Aide" - Afficher cette aide`);
+            }
+            else {
+                addBotMessage(`🤔 Je n'ai pas compris votre demande. Tapez "aide" pour voir les commandes disponibles.`);
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatbotInput');
+            const msg = input.value.trim();
+            if (msg) {
+                addUserMessage(msg);
+                input.value = '';
+                processBotResponse(msg);
+            }
+        }
+
+        function sendSuggestion(text) {
+            addUserMessage(text);
+            processBotResponse(text);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        /* ============================================================================
+           WEBSOCKET
+        ============================================================================ */
+        function initWebSocket() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const socket = new WebSocket(`${proto}//${location.host}/ws/dashboard/`);
+            
+            socket.onopen = () => {
+                updateWSStatus(true);
+                reconnectAttempts = 0;
+                console.log('WebSocket connecté');
+            };
+            
+            socket.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'bus_locations' && data.buses) {
+                        data.buses.forEach(newBus => {
+                            const existingMarker = busMarkers.find(m => m.busData?.id === newBus.idBus);
+                            if (existingMarker) {
+                                existingMarker.setLatLng([newBus.lat, newBus.lng]);
+                                existingMarker.busData.lat = newBus.lat;
+                                existingMarker.busData.lng = newBus.lng;
+                                existingMarker.busData.speed = newBus.vitesse || existingMarker.busData.speed;
+                                existingMarker.busData.lastUpdate = formatTime(new Date());
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error('WebSocket message error:', err);
+                }
+            };
+            
+            socket.onclose = () => {
+                updateWSStatus(false);
+                console.log('WebSocket déconnecté, tentative de reconnexion...');
+                if (reconnectAttempts++ < MAX_RECONNECT) {
+                    setTimeout(initWebSocket, 3000);
+                }
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateWSStatus(false);
+            };
+            
+            return socket;
+        }
+
+        function updateWSStatus(connected) {
+            const el = document.getElementById('wsStatus');
+            el.className = `ws-status ${connected ? 'connected' : 'disconnected'}`;
+            if (connected) {
+                el.innerHTML = '<i class="fas fa-circle text-success"></i><span>Connecté</span>';
+            } else {
+                el.innerHTML = '<i class="fas fa-circle text-danger"></i><span>Déconnecté</span>';
+            }
+        }
+
+        /* ============================================================================
+           MAIN INITIALIZATION
+        ============================================================================ */
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Récupération des données Django
+                const lignesGeoJSON = JSON.parse("{{ lignes_geojson|escapejs }}" || '{"features":[]}');
+                const busGeoJSON = JSON.parse("{{ bus_geojson|escapejs }}" || '{"features":[]}');
+                const arretsGeoJSON = JSON.parse("{{ arrets_geojson|escapejs }}" || '{"features":[]}');
+                
+                // Construction de la liste des arrêts
+                arretsList = arretsGeoJSON.features.map(f => ({
+                    idarret: f.properties.idarret,
+                    nom: f.properties.nom,
+                    idligne: f.properties.idligne,
+                    lat: f.geometry.coordinates[1],
+                    lng: f.geometry.coordinates[0],
+                    ordre: f.properties.ordre || 0
+                }));
+                
+                console.log(`✅ Données chargées: ${lignesGeoJSON.features.length} lignes, ${busGeoJSON.features.length} bus, ${arretsList.length} arrêts`);
+                
+             // Initialisation de la carte
+map = L.map('map').setView([36.8065, 10.1815], 13);
+
+// ============================================================
+// COUCHES POUR CHANGEMENT DE VUE (SATELLITE / CARTE)
+// ============================================================
+const osmTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap contributors, © CARTO',
+    maxZoom: 19
+});
+
+const satelliteTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Esri',
+    maxZoom: 19
+});
+
+let currentMapLayer = 'osm';
+
+// Ajouter la couche par défaut
+osmTile.addTo(map);
+
+// Fonction pour basculer entre les vues
+window.toggleMapLayer = function() {
+    if (currentMapLayer === 'osm') {
+        map.removeLayer(osmTile);
+        satelliteTile.addTo(map);
+        currentMapLayer = 'satellite';
+        const iconEl = document.getElementById('mapToggleIcon');
+        const textEl = document.getElementById('mapToggleText');
+        if (iconEl) iconEl.className = 'fas fa-globe';
+        if (textEl) textEl.textContent = 'Carte';
+        console.log('Mode Satellite activé');
+    } else {
+        map.removeLayer(satelliteTile);
+        osmTile.addTo(map);
+        currentMapLayer = 'osm';
+        const iconEl = document.getElementById('mapToggleIcon');
+        const textEl = document.getElementById('mapToggleText');
+        if (iconEl) iconEl.className = 'fas fa-map';
+        if (textEl) textEl.textContent = 'Satellite';
+        console.log('Mode Carte activé');
+    }
+};
+                
+                
+                // Affichage des lignes
+                lignesGeoJSON.features.forEach((feature, idx) => {
+                    const coords = feature.geometry.coordinates.map(c => [c[1], c[0]]);
+                    const lineId = String(feature.properties.numero || feature.properties.idligne || idx + 1);
+                    const color = `hsl(${idx * 45 % 360}, 70%, 55%)`;
+                    const weight = 4;
+                    const opacity = 0.8;
+                    
+                    const polyline = L.polyline(coords, { color, weight, opacity }).addTo(map);
+                    polyline.bindTooltip(`Ligne ${lineId}`);
+                    polyline.on('click', () => handleLineSelect(lineId));
+                    
+                    linePolylines[lineId] = polyline;
+                    lineOriginalStyle[lineId] = { color, weight, opacity };
+                    validLineNumbers.push(lineId);
+                    
+                    const option = document.createElement('option');
+                    option.value = lineId;
+                    option.text = `Ligne ${lineId}`;
+                    document.getElementById('lineSelect').appendChild(option);
+                });
+                
+                // Affichage des arrêts
+                arretsList.forEach(arret => {
+                    L.circleMarker([arret.lat, arret.lng], {
+                        radius: 5,
+                        color: '#00c896',
+                        fillColor: '#00c896',
+                        fillOpacity: 0.8,
+                        weight: 2
+                    }).addTo(map).bindTooltip(arret.nom);
+                });
+                
+                // Affichage des bus
+                busGeoJSON.features.forEach((bus, idx) => {
+                    const props = bus.properties;
+                    const coords = bus.geometry.coordinates;
+                    if (!coords || coords.length < 2) return;
+                    
+                    const lat = coords[1];
+                    const lng = coords[0];
+                    const busLineNumber = props.idLigne || "";
+                    const isValid = validLineNumbers.includes(String(busLineNumber).trim());
+                    const busId = `bus_${props.idBus || props.immatriculation || idx}_${Date.now()}`;
+                    const busSpeed = props.vitesse || 30;
+                    const hasFire = props.statut === 'incendie';
+                    
+                    const iconColor = hasFire ? '#dc3545' : (isValid ? '#00c896' : '#ff9800');
+                    const icon = L.divIcon({
+                        html: `<div style="background:${iconColor};border:2px solid white;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                                <i class="fas fa-${hasFire ? 'fire' : 'bus'}"></i>
+                              </div>`,
+                        iconSize: [34, 34],
+                        iconAnchor: [17, 17],
+                        popupAnchor: [0, -17]
+                    });
+                    
+                    const busData = {
+                        immatriculation: props.immatriculation,
+                        modele: props.modele,
+                        statut: props.statut,
+                        kilometrage: props.kilometrage,
+                        lineNumber: busLineNumber,
+                        hasFire: hasFire,
+                        id: props.idBus,
+                        speed: busSpeed,
+                        lastUpdate: formatTime(new Date())
+                    };
+                    
+                    const marker = L.marker([lat, lng], { icon }).addTo(map);
+                    const popupContent = createPopupContent(busData, busLineNumber, isValid, busId, lat, lng, busSpeed);
+                    marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 400 });
+                    marker.busData = busData;
+                    
+                    if (isValid) {
+                        marker.on('popupopen', () => {
+                            setTimeout(() => loadPrediction(busId, busLineNumber, busSpeed, lat, lng), 200);
+                        });
+                    }
+                    
+                    busMarkers.push(marker);
+                });
+                
+                // Mise à jour des statistiques
+                updateStats(
+                    busMarkers.length,
+                    busMarkers.filter(m => m.busData?.hasFire).length,
+                    Object.keys(linePolylines).length
+                );
+                
+                // Initialisation des composants externes
+                await updateWeatherUI();
+                const news = await fetchRealNews();
+                updateNewsUI(news);
+                updateTweetsUI(getSimulatedTweets());
+                
+                // WebSocket pour les mises à jour en temps réel
+                websocket = initWebSocket();
+                
+                // Rafraîchissement périodique
+                setInterval(() => {
+                    updateStats(
+                        busMarkers.length,
+                        busMarkers.filter(m => m.busData?.hasFire).length,
+                        Object.keys(linePolylines).length
+                    );
+                }, 30000);
+                
+                setInterval(async () => {
+                    await updateWeatherUI();
+                    const newNews = await fetchRealNews();
+                    updateNewsUI(newNews);
+                }, 5 * 60 * 1000);
+                
+                console.log('✅ Application initialisée avec succès');
+                
+            } catch (error) {
+                console.error('❌ Erreur lors de l\'initialisation:', error);
+            }
+        });
+        
+        // Exposition des fonctions globales
+        window.selectLine = selectLine;
+        window.searchMap = searchMap;
+        window.handleLineSelect = handleLineSelect;
+        window.handleHighlightOnlyChange = handleHighlightOnlyChange;
+        window.filterBus = filterBus;
+        window.clearLineSelection = clearLineSelection;
+        window.toggleChatbot = toggleChatbot;
+        window.sendMessage = sendMessage;
+        window.sendSuggestion = sendSuggestion;
+        window.handleKeyPress = handleKeyPress;
+        window.openPanel = openPanel;
+        window.closePanel = closePanel;
+        window.toggleMobileSidebar = toggleMobileSidebar;
+        window.refreshAllData = refreshAllData;
+        window.toggleMapLayer = toggleMapLayer;
+        window.logout = logout;
+    </script>
+</body>
+</html>
